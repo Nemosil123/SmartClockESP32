@@ -1,6 +1,6 @@
 #ifndef DISPLAYTEXTO_H
 #define DISPLAYTEXTO_H
-#include <MD_Parola.h>
+//#include <MD_Parola.h>
 #include <MD_MAX72xx.h>
 #include <SPI.h>
 #include "IDisplay.h"
@@ -8,13 +8,17 @@
 class DisplayTexto : public IDisplay
 {
     private:
-        MD_Parola screen;
+       char* Texto;
+       textEffect_t efectos[] = 
+       {
+
+       };   
     public:
-        DisplayTexto(MD_Parola s);
-        void PintarPantalla() override;
+        DisplayTexto(char* txt);
+        char* getTexto() override;
         void Init() override;
-        uint32_t getMilliseconsEachLoop() const override;
-        bool displayAnimate()  override;
+        uint32_t getMilliseconsSleep() const override;
+        //bool displayAnimate()  override;
 
 
 };

@@ -1,29 +1,26 @@
 #include "DisplayTexto.h"
 
-DisplayTexto::DisplayTexto(MD_Parola s) : screen(s)
+DisplayTexto::DisplayTexto(char * msg):Texto(msg){}
+
+char* DisplayTexto::getTexto()
 {
+   return Texto;
 }
 
-void DisplayTexto::PintarPantalla()
+void DisplayTexto::Init()
 {
-    if (screen.displayAnimate())
-        screen.displayText("SONSOLES BENITEZ DE SOTO", PA_CENTER, screen.getSpeed(), 1000, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-
+    // screen.begin();
+    // screen.displayReset();
+    // screen.setSpeed(50);
 }
 
-    void DisplayTexto::Init()
+uint32_t DisplayTexto::getMilliseconsSleep() const
 {
-    screen.begin();
-    screen.setSpeed(50);
+    return 2000;
 }
 
-    uint32_t DisplayTexto::getMilliseconsEachLoop() const
-{
-    return 1000;
-}
-
-bool DisplayTexto::displayAnimate() 
-{
-    return screen.displayAnimate();
-}
+// bool DisplayTexto::displayAnimate() 
+// {
+//     return screen.displayAnimate();
+// }
 
