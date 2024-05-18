@@ -8,17 +8,19 @@
 class DisplayTexto : public IDisplay
 {
     private:
+        u_int16_t idxFraseMotiv=0;
        char* Texto;
-       textEffect_t efectos[] = 
-       {
 
-       };   
     public:
+
         DisplayTexto(char* txt);
+        char* getTexto(bool &esMotiv) override;
         char* getTexto() override;
-        void Init() override;
+        void setTexto(char* );
+        void Init(MD_Parola* pantalla) override;
         uint32_t getMilliseconsSleep() const override;
-        //bool displayAnimate()  override;
+        char* getNombre() override;
+        void setCnf(bool efectoRnd, bool fraseMotivadora) override;
 
 
 };

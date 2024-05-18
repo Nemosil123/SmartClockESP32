@@ -3,7 +3,7 @@
 //#include <SPI.h>
 #include "Displays/DisplayTexto.h"
 #include "MngrDisplays.h"
-
+#include "GestorConfig.h"
 #ifdef MODULO_WIFI_PRESENTE
 /********* WIFI  *************/
 #include "WiFiManager.h"
@@ -27,7 +27,7 @@
 MD_Parola pantalla = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 IDisplay* dspActiva;
 MngrDisplays mngrDsp;
-
+GestorConfig mngrCnfg;
 
 bool botonPulsadoBT=false;
 bool btnPulsadoAlarma=false;
@@ -57,9 +57,10 @@ void setup(void)
 
   Serial.println("Inicilizando Screens");
   InitScreens(); 
+
+  mngrCnfg.SetConfig(mngrDsp);
+
   dspActiva = mngrDsp.GetActiveDisplay();
-  //dspActiva = new DisplayTexto(pantalla);
-  //dspActiva->Init();
 }
 
 void loop(void)
@@ -81,29 +82,48 @@ void loop(void)
   }
   else
   {
-  if(pantalla.displayAnimate())
-  {
-        //pantalla.displayText("SONSOLES BENITEZ DE SOTO", PA_CENTER, pantalla.getSpeed(), 1000, PA_SCROLL_RIGHT, PA_SCROLL_RIGHT);
-        pantalla.displayText(dspActiva->getTexto(), PA_CENTER, pantalla.getSpeed(), 1000, PA_SCROLL_DOWN, PA_SCROLL_DOWN);
+      if(pantalla.displayAnimate())
+      {
+         MngrDisplays::sCatalogEfects ef;
+          if(dspActiva->cnf.efectoRnd)
+          {
+            ef = mngrDsp.getEfectoRnd();
+          }
+          else
+          {
+            ef = mngrDsp.getEfectoFijo();
+          }
+
+          bool esMov = false;
+          char* txt=dspActiva->getTexto(esMov);
+
+          pantalla.displayText(txt, PA_CENTER, ef.speed, ef.pause,(!esMov ?  ef.effect : PA_SCROLL_LEFT), (!esMov ?  ef.effect : PA_SCROLL_LEFT));
+
+          if(mngrCnfg.cambioAutomaticoPantalla)
+             dspActiva=mngrDsp.NextDisplay();
+             
+          delay(dspActiva->getMilliseconsSleep());
+      }
   }
     // Serial.println("pintar pantalla");
     // //dspActiva->PintarPantalla();
     // Serial.println("end pintar pantalla");
   
-    if(pantalla.displayAnimate())
-    {
-       delay(dspActiva->getMilliseconsSleep());
-    }
-  }
+  
 }
 
 void InitScreens()
 {
-  Serial.println("InitPantalla");
   pantalla.begin();
   mngrDsp.Init();
+
+  for(uint8_t i=0;i<mngrDsp.getNumDisplays();i++)
+  {
+    Serial.println(mngrDsp.GetDisplay(i)->getNombre());
+    mngrDsp.GetDisplay(i)->Init(&pantalla);
+  }
+
   pantalla.setIntensity(mngrDsp.getBrillo());
-  Serial.println("GetActiveDisplay");
   dspActiva = mngrDsp.GetActiveDisplay();
   //mngrDsp.AddDisplay(new DisplayTexto("Soy Jorge Super chip"),0);
 }
