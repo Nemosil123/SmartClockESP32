@@ -3,7 +3,7 @@
 // Global data
 
 // Velocidad cuanto un valor es mayor mas despacio
-MngrDisplays::sCatalogEfects catalogEfects[] =
+const static MngrDisplays::sCatalogEfects catalogEfects[] =
 {
    { PA_PRINT, 1, 1},
   { PA_SCROLL_UP, 50, 1},
@@ -51,24 +51,34 @@ u_int8_t MngrDisplays::getNumDisplays()
     return NUM_SCREENS;
 }
 
-
-
-void MngrDisplays::Init()
+#ifdef MODULO_WIFI_PRESENTE
+void MngrDisplays::Init(Timezone* hora)
+#else
+void MngrDisplays::Init(HoraLocal* hora)
+#endif
 {
-    LstDisplays[0]=new DisplayTexto(nullptr);
 
+    LstDisplays[0]=new DisplayTexto("inicio");
+  Serial.println("Instancia 1");
+
+    LstDisplays[1]= new DisplayHora(hora);
+  Serial.println("Instancia 2");
+
+    LstDisplays[2]= new DisplayDibujos();
+  Serial.println("Instancia 3");
 
 }
+
 
 IDisplay *MngrDisplays::GetActiveDisplay()
 {
     return LstDisplays[idxDisplayActivo];
 }
 
+
 IDisplay *MngrDisplays::GetDisplay(u_int8_t idx)
 {
     if(idx>=NUM_SCREENS) return nullptr;
-
     return LstDisplays[idx];
 }
 
@@ -82,16 +92,12 @@ IDisplay *MngrDisplays::NextDisplay()
     return GetActiveDisplay();
 }
 
-void MngrDisplays::setBrillo(u_int8_t b)
+u_int8_t MngrDisplays::getIdxActive()
 {
-    brillo = b;
+    return idxDisplayActivo;
 }
 
-u_int8_t MngrDisplays::getBrillo()
-{
-    return brillo;
-}
-
+static u_int8_t iIdxEfecto;
 MngrDisplays::sCatalogEfects MngrDisplays::getEfectoRnd()
 {
     if(iIdxEfecto+1>NUM_EFECTOS) iIdxEfecto=0;

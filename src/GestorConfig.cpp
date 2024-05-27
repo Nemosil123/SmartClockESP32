@@ -7,7 +7,7 @@ void GestorConfig::RefreshConfig(MngrDisplays mngr)
     //...
 
     // Y ponemos la nueva config en los Displays
-    SetConfig(mngr);
+   // SetConfig(mngr);
 
 }
 
@@ -19,11 +19,37 @@ GestorConfig::~GestorConfig()
 {
 }
 
-void GestorConfig::SetConfig(MngrDisplays mngr)
+
+void GestorConfig::setBrillo(u_int8_t b)
 {
+    brilloDisplay = b;
+}
+
+u_int8_t GestorConfig::getBrillo()
+{
+    return brilloDisplay;
+}
+
+void GestorConfig::SetConfig(MngrDisplays mngr, HoraLocal* ahora)
+{
+    ConfigGeneral cf(ahora);
+    cf.AlarmaActiva=true;
+    //cf.horaAlarma = &HoraLocal(8,0,0);
+    cf.textoPrincipal = " ";
     // Config Texto
     DisplayTexto* dspTxt =  (DisplayTexto*)mngr.GetDisplay(0);
     dspTxt->setTexto(this->txtPpal);
-    dspTxt->setCnf(txtbEfectoRnd,txtbFraseMotiva);
+    dspTxt->setCnf(cf);
+
+    // Config Hora
+    DisplayHora* dspH =  (DisplayHora*)mngr.GetDisplay(1);
+    dspH->setTexto("DESPIERTA!!");
+    dspH->setCnf(cf);
+
+        // Config Dibujos
+    DisplayDibujos* dspDib =  (DisplayDibujos*)mngr.GetDisplay(2);
+    dspDib->setCnf(cf);
+
+    //
 }
 

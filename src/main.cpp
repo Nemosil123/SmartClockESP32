@@ -4,11 +4,17 @@
 #include "Displays/DisplayTexto.h"
 #include "MngrDisplays.h"
 #include "GestorConfig.h"
-#ifdef MODULO_WIFI_PRESENTE
+
+#include "Displays/DisplayDibujos.h" // borrar
+#include <string> // borrar
+
 /********* WIFI  *************/
+#ifdef MODULO_WIFI_PRESENTE
 #include "WiFiManager.h"
 #include "ezTime.h"
-
+#else
+#include "TimeJor.h"
+#include <Ticker.h>
 #endif
 //#include "Displays/DisplayTexto.h"
 // #include "EfectosTexto.h"
@@ -35,6 +41,9 @@ bool btnSetPulsado=false;
 
 #ifdef MODULO_WIFI_PRESENTE
 Timezone horaTZ;
+#else
+HoraLocal horaLoc(0,0,0);
+Ticker ticksHora;
 #endif
 
 /**********************************************/
@@ -46,6 +55,7 @@ void ApagarAlarma();
 void CambiarDisplay();
 void InitWifiMngr();
 void InitScreens();
+void pulsoSeg();
 
 /****************************************/
 
@@ -54,15 +64,22 @@ void setup(void)
      // put your setup code here, to run once:
   Serial.begin(9600);
   InitWifiMngr();
+  ticksHora.attach(1,pulsoSeg);
 
-  Serial.println("Inicilizando Screens");
+  Serial.println("Inicializando Screens");
   InitScreens(); 
 
-  mngrCnfg.SetConfig(mngrDsp);
+  mngrCnfg.SetConfig(mngrDsp, &horaLoc);
+
+#ifdef DEBUG_MODE
+   mngrDsp.NextDisplay();
+ // mngrDsp.NextDisplay();
+#endif
 
   dspActiva = mngrDsp.GetActiveDisplay();
 }
 
+//int veces=0;
 void loop(void)
 {
   
@@ -82,29 +99,54 @@ void loop(void)
   }
   else
   {
-      if(pantalla.displayAnimate())
-      {
-         MngrDisplays::sCatalogEfects ef;
-          if(dspActiva->cnf.efectoRnd)
-          {
-            ef = mngrDsp.getEfectoRnd();
-          }
-          else
-          {
-            ef = mngrDsp.getEfectoFijo();
-          }
+//       if(pantalla.displayAnimate())
+//       {
+//           MngrDisplays::sCatalogEfects ef;
+//           if(dspActiva->cnf.efectoRnd && mngrDsp.getIdxActive() != 2)
+//           {
+//             ef = mngrDsp.getEfectoRnd();
+//           }
+//           else
+//           {
+//             ef.effect = dspActiva->cnf.EfectoScreen;
+//             ef.pause = 0;
+//             ef.speed = 40;
+//           }
 
-          bool esMov = false;
-          char* txt=dspActiva->getTexto(esMov);
+//           bool esMot = false;
+//           char* txt=dspActiva->getTexto(esMot);
 
-          pantalla.displayText(txt, PA_CENTER, ef.speed, ef.pause,(!esMov ?  ef.effect : PA_SCROLL_LEFT), (!esMov ?  ef.effect : PA_SCROLL_LEFT));
+// #ifdef DEBUG_MODE
+//           Serial.print("efecto SPRITE: ");
+//           Serial.print(ef.effect==PA_SPRITE?"SI":"NO");
+//           Serial.print(" Efecto Rnd: ");
+//           Serial.print(dspActiva->cnf.efectoRnd? "SI": "NO");
+//           Serial.print(" TXT: ");
+//           Serial.println(txt);
+// #endif
+//         if(veces>=2 && mngrDsp.getIdxActive() == 2) // pANTALLA DE DIBUJOS
+//          {
+            
+//              pantalla.displayText(txt, PA_CENTER, 20, 1000, PA_SPRITE, PA_SPRITE);
+//              pantalla.setSpriteData(rocket, W_ROCKET, F_ROCKET, rocket, W_ROCKET, F_ROCKET);
+//              veces=0;
+//          }
+//          else
+//          {
+//             pantalla.displayScroll(txt, dspActiva->cnf.posicion, (!esMot ?  ef.effect : PA_SCROLL_LEFT), ef.speed);
 
-          if(mngrCnfg.cambioAutomaticoPantalla)
-             dspActiva=mngrDsp.NextDisplay();
+//          }
+       // Serial.println("loop pintar");
+
+          // if(mngrCnfg.cambioAutomaticoPantalla)
+          //    dspActiva=mngrDsp.NextDisplay();
+          dspActiva->Pintar(&pantalla);
              
-          delay(dspActiva->getMilliseconsSleep());
-      }
+          //delay(dspActiva->getMilliseconsSleep());
+          // veces++;
+          // Serial.println(veces);
   }
+  
     // Serial.println("pintar pantalla");
     // //dspActiva->PintarPantalla();
     // Serial.println("end pintar pantalla");
@@ -112,20 +154,28 @@ void loop(void)
   
 }
 
+
 void InitScreens()
 {
+  Serial.println("InitScreens");
   pantalla.begin();
-  mngrDsp.Init();
+#ifdef MODULO_WIFI_PRESENTE
+  mngrDsp.Init(&horaTZ);
+#else
+  mngrDsp.Init(&horaLoc);
+#endif
 
   for(uint8_t i=0;i<mngrDsp.getNumDisplays();i++)
   {
-    Serial.println(mngrDsp.GetDisplay(i)->getNombre());
+   // Serial.println(mngrDsp.GetDisplay(i)->getNombre().c_str());
     mngrDsp.GetDisplay(i)->Init(&pantalla);
   }
 
-  pantalla.setIntensity(mngrDsp.getBrillo());
-  dspActiva = mngrDsp.GetActiveDisplay();
-  //mngrDsp.AddDisplay(new DisplayTexto("Soy Jorge Super chip"),0);
+  pantalla.setIntensity(mngrCnfg.getBrillo());
+  Serial.print("Brillo: ");
+  Serial.println(mngrCnfg.getBrillo());
+  dspActiva = (DisplayHora*)mngrDsp.GetActiveDisplay(); // QUITAR EL CAST Y DEJAR COMO GENERICO
+
 }
 
 void InitWifiMngr()
@@ -156,16 +206,30 @@ void InitWifiMngr()
 
     // Ajustamos la hora
     horaTZ.setLocation(F("Europe/Madrid"));
-    #endif
+    waitForSync();
+    Serial.println(horaTZ.dateTime());
 
-#ifdef DEBUG_MODE
-    #ifdef MODULO_WIFI_PRESENTE
 
     Serial.print(horaTZ.hour());
     Serial.print(":");
     Serial.print(horaTZ.minute());
-    #endif
+#else
+  horaLoc = HoraLocal(22,35,0);
+  Serial.print(horaLoc.getFormattedTime());
 #endif
+}
+
+void pulsoSeg()
+{
+  horaLoc.tick();
+  // Serial.print("H: "); Serial.print(horaLoc.getHours());
+  // Serial.print(" M: "); Serial.print(horaLoc.getMinutes());
+  // Serial.print(" S: "); Serial.println(horaLoc.getSeconds());
+  // char buffer[9]; // HH:MM:SS
+  // snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", horaLoc.getHours(), horaLoc.getMinutes(), horaLoc.getSeconds());
+
+   //Serial.println(horaLoc.getFormattedTime());
+
 }
 
 void EncenderBT(){}

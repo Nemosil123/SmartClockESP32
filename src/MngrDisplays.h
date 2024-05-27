@@ -2,15 +2,23 @@
 #define MNGRDISPLAY_H
 #include "Displays/IDisplay.h"
 #include "Displays/DisplayTexto.h"
+#include "Displays/DisplayHora.h"
+#include "Displays/DisplayDibujos.h"
 #include <MD_Parola.h>
+#ifdef MODULO_WIFI_PRESENTE
+#include "ezTime.h"
+#else
+#include "TimeJor.h"
+#endif
 
-#define NUM_SCREENS 1
+
+
+#define NUM_SCREENS 3
 
 class MngrDisplays
 {
 private:
     u_int8_t idxDisplayActivo;
-    u_int8_t brillo =5;
 
    // MD_Parola screenLED;
 public:
@@ -22,7 +30,6 @@ public:
     };
     
 
-u_int8_t iIdxEfecto = 0;
 
 
     IDisplay* LstDisplays[NUM_SCREENS];
@@ -32,13 +39,18 @@ u_int8_t iIdxEfecto = 0;
     ~MngrDisplays();
     void AddDisplay(IDisplay* dsp, u_int8_t idx);
     u_int8_t getNumDisplays();
-    void Init();
+#ifdef MODULO_WIFI_PRESENTE
+    void Init(Timezone* hora);
+#else
+    void Init(HoraLocal* hora);
+#endif
+
     IDisplay* GetActiveDisplay();
     IDisplay* GetDisplay(u_int8_t idx);
     IDisplay* NextDisplay();
-    void setBrillo(u_int8_t b);
-    u_int8_t getBrillo();
-    sCatalogEfects getEfectoRnd();
+    u_int8_t getIdxActive();
+ 
+    static sCatalogEfects getEfectoRnd();
     sCatalogEfects getEfectoFijo();
 
 };
