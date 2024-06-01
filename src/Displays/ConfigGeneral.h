@@ -7,10 +7,13 @@ class ConfigGeneral
 private:
     /* data */
 public:
-    char* textoPrincipal;
+    char* textoMensajes;
+    char* textoAlarma;
+    char* textoDibujos;
     HoraLocal* horaActual;
     HoraLocal* horaAlarma;
     bool AlarmaActiva;
+    bool AutoCambiarScreens;
 
     ConfigGeneral(HoraLocal *ahora);
 

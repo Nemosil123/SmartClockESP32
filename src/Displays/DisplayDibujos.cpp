@@ -33,7 +33,6 @@ str_sprite  DisplayDibujos::getSpriteRnd()
 
 void DisplayDibujos::Pintar(MD_Parola *pantalla)
 {
-    Serial.println("Pintar DisplayDibujos");
       if(pantalla->displayAnimate())
       {
 
@@ -41,9 +40,9 @@ void DisplayDibujos::Pintar(MD_Parola *pantalla)
         char* txt=getTexto();
 
         str_sprite sp = getSpriteRnd();
-        pantalla->displayText(txt, PA_CENTER, 25, 0, PA_SPRITE, PA_SPRITE);
+        pantalla->displayText(txt, PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
         pantalla->setSpriteData(sp.data, sp.width, sp.frames, sp.data, sp.width, sp.frames);
-        pantalla->setSpeedInOut(7,5);
+       // pantalla->setSpeedInOut(7,5);
 
         pantalla->displayReset();
       }
@@ -63,5 +62,5 @@ std::string DisplayDibujos::getNombre()
 
 void DisplayDibujos::setCnf(ConfigGeneral cf)
 {
-    texto = cf.textoPrincipal;
+    texto = cf.textoDibujos;
 }

@@ -1,15 +1,17 @@
 #include "TimeJor.h"
 
-HoraLocal::HoraLocal(u_int8_t h, u_int8_t m, u_int8_t s): hours(h), minutes(m), seconds(s)
-{
-   // ticker.attach(1, std::bind(&&TimerJor::tick, this));
-}
+HoraLocal::HoraLocal(u_int16_t h, u_int16_t m, u_int16_t s): hours(h), minutes(m), seconds(s)
+{}
 
-void HoraLocal::tick()
+/// @brief Se debe invocar cada segundo para controlar el reloj
+/// @return Devuelve true si ha cambiado el minuto
+bool HoraLocal::tick()
 {
+    bool cambioMin = false;
     seconds++;
     if (seconds >= 60) {
         seconds = 0;
+        cambioMin = true;
         minutes++;
         if (minutes >= 60) {
             minutes = 0;
@@ -19,6 +21,7 @@ void HoraLocal::tick()
             }
         }
     }
+    return cambioMin;
 }
 
 // TimeJor::TimeJor(int h, int m, int s) : hours(h), minutes(m), seconds(s) {
@@ -27,20 +30,24 @@ void HoraLocal::tick()
 
 
 
-u_int8_t HoraLocal::getHours() {
+u_int16_t HoraLocal::getHours() {
     return hours;
 }
 
-u_int8_t HoraLocal::getMinutes() {
+u_int16_t HoraLocal::getMinutes() {
     return minutes;
 }
 
-u_int8_t HoraLocal::getSeconds() {
+u_int16_t HoraLocal::getSeconds() {
     return seconds;
 }
 
 String HoraLocal::getFormattedTime() {
     char buffer[7]; // HH:MM
-    snprintf(buffer, sizeof(buffer), "%02d:%02d", hours, minutes);
+    snprintf(buffer, sizeof(buffer), "%02d:%02d ", hours, minutes);
     return String(buffer);
 }
+
+
+
+

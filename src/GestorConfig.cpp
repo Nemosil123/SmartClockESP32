@@ -11,8 +11,9 @@ void GestorConfig::RefreshConfig(MngrDisplays mngr)
 
 }
 
-GestorConfig::GestorConfig()
+GestorConfig::GestorConfig(HoraLocal* ahora) 
 {
+    cf = new ConfigGeneral(ahora);
 }
 
 GestorConfig::~GestorConfig()
@@ -32,23 +33,21 @@ u_int8_t GestorConfig::getBrillo()
 
 void GestorConfig::SetConfig(MngrDisplays mngr, HoraLocal* ahora)
 {
-    ConfigGeneral cf(ahora);
-    cf.AlarmaActiva=true;
-    //cf.horaAlarma = &HoraLocal(8,0,0);
-    cf.textoPrincipal = " ";
+    
+
     // Config Texto
     DisplayTexto* dspTxt =  (DisplayTexto*)mngr.GetDisplay(0);
-    dspTxt->setTexto(this->txtPpal);
-    dspTxt->setCnf(cf);
+    //dspTxt->setTexto(this->txtPpal);
+    dspTxt->setCnf(*cf);
 
     // Config Hora
     DisplayHora* dspH =  (DisplayHora*)mngr.GetDisplay(1);
-    dspH->setTexto("DESPIERTA!!");
-    dspH->setCnf(cf);
+    //dspH->setTexto("DESPIERTA!!");
+    dspH->setCnf(*cf);
 
         // Config Dibujos
     DisplayDibujos* dspDib =  (DisplayDibujos*)mngr.GetDisplay(2);
-    dspDib->setCnf(cf);
+    dspDib->setCnf(*cf);
 
     //
 }

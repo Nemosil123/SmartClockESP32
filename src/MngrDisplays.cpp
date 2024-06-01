@@ -57,16 +57,9 @@ void MngrDisplays::Init(Timezone* hora)
 void MngrDisplays::Init(HoraLocal* hora)
 #endif
 {
-
     LstDisplays[0]=new DisplayTexto("inicio");
-  Serial.println("Instancia 1");
-
     LstDisplays[1]= new DisplayHora(hora);
-  Serial.println("Instancia 2");
-
     LstDisplays[2]= new DisplayDibujos();
-  Serial.println("Instancia 3");
-
 }
 
 
@@ -84,11 +77,14 @@ IDisplay *MngrDisplays::GetDisplay(u_int8_t idx)
 
 IDisplay *MngrDisplays::NextDisplay()
 {
+    Serial.print(" Old="+String(idxDisplayActivo));
     if(idxDisplayActivo+1>=NUM_SCREENS)
     {
-        idxDisplayActivo=0;
+        idxDisplayActivo=-1;
     }
     idxDisplayActivo++;
+    Serial.print("NEW="+String(idxDisplayActivo));
+
     return GetActiveDisplay();
 }
 

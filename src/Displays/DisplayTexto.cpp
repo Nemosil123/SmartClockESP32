@@ -148,7 +148,7 @@ MngrDisplays::sCatalogEfects efTmp;
   if(iControlMotiv>4)
   {
     esMotiv = true;
-    Serial.print(" <mot> ");
+   // Serial.print(" <mot> ");
     efTmp = MngrDisplays::getEfectoRnd();
     iControlMotiv=0;
     // Obtener la cadena y su longitud
@@ -162,7 +162,7 @@ MngrDisplays::sCatalogEfects efTmp;
   }
   else
   {
-    Serial.print(" <normal> ");
+    //Serial.print(" <normal> ");
     esMotiv=false;
     return Texto;
   }
@@ -174,15 +174,15 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
 {
   if(pantalla->displayAnimate())
   {
-    Serial.print('>');
+   // Serial.print('>');
     bool esMot = false;
     char* txt=getTexto(esMot);
-#ifdef DEBUG_MODE
-     Serial.print(unaSiunaNo);
-     Serial.print(" esMot= ");
-     Serial.print(esMot);
-    //Serial.print(ef.effect==PA_SPRITE?"SI":"NO");
-#endif
+// #ifdef DEBUG_MODE
+//      Serial.print(unaSiunaNo);
+//      Serial.print(" esMot= ");
+//      Serial.print(esMot);
+//     //Serial.print(ef.effect==PA_SPRITE?"SI":"NO");
+// #endif
     if(!esMot)
     {
         if(unaSiunaNo)
@@ -208,8 +208,8 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
     unaSiunaNo=!unaSiunaNo;
     pantalla->displayReset();
 
-    Serial.print(" TXT: ");
-    Serial.println(txt);
+    // Serial.print(" TXT: ");
+    // Serial.println(txt);
 
   }
 }
@@ -236,7 +236,7 @@ std::string DisplayTexto::getNombre()
 
 void DisplayTexto::setCnf(ConfigGeneral cnfD)
 {
-    setTexto(cnfD.textoPrincipal);
+    setTexto(cnfD.textoMensajes);
 }
 
 
