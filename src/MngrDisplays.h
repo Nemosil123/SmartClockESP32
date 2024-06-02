@@ -4,6 +4,7 @@
 #include "Displays/DisplayTexto.h"
 #include "Displays/DisplayHora.h"
 #include "Displays/DisplayDibujos.h"
+#include "Displays/DisplayConfig.h"
 #include <MD_Parola.h>
 #ifdef MODULO_WIFI_PRESENTE
 #include "ezTime.h"
@@ -13,7 +14,7 @@
 
 
 
-#define NUM_SCREENS 3
+#define NUM_SCREENS 4
 
 class MngrDisplays
 {

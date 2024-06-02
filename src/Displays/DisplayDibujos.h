@@ -244,7 +244,7 @@ class DisplayDibujos : public IDisplay
         char* texto;
         char* getTexto() override;
         void Init(MD_Parola* pantal) override;
-        uint32_t  getMilliseconsSleep() const override;
+        //uint32_t  getMilliseconsSleep() const override;
         std::string getNombre() override;
         void setCnf(ConfigGeneral cf) override;
 

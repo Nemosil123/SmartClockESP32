@@ -60,6 +60,7 @@ void MngrDisplays::Init(HoraLocal* hora)
     LstDisplays[0]=new DisplayTexto("inicio");
     LstDisplays[1]= new DisplayHora(hora);
     LstDisplays[2]= new DisplayDibujos();
+    LstDisplays[3]= new DisplayConfig();
 }
 
 

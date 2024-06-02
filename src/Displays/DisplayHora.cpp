@@ -52,10 +52,10 @@ void DisplayHora::Pintar(MD_Parola *pantalla)
     }
 }
 
-uint32_t DisplayHora::getMilliseconsSleep() const
-{
-    return 1000;
-}
+// uint32_t DisplayHora::getMilliseconsSleep() const
+// {
+//     return 1000;
+// }
 
 std::string DisplayHora::getNombre()
 {

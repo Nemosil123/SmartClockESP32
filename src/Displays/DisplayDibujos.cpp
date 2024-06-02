@@ -50,10 +50,10 @@ void DisplayDibujos::Pintar(MD_Parola *pantalla)
 
 
 
-uint32_t DisplayDibujos::getMilliseconsSleep() const
-{
-    return 1000;
-}
+// uint32_t DisplayDibujos::getMilliseconsSleep() const
+// {
+//     return 1000;
+// }
 
 std::string DisplayDibujos::getNombre()
 {

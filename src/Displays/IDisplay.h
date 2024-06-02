@@ -23,7 +23,7 @@ class IDisplay
         virtual  char* getTexto()=0;
         virtual void Init(MD_Parola* pantalla)=0;
 
-        virtual uint32_t  getMilliseconsSleep() const=0;
+       // virtual uint32_t  getMilliseconsSleep() const=0;
         virtual std::string getNombre()=0;
         virtual void setCnf(ConfigGeneral cnf)=0;
         virtual void Pintar(MD_Parola* pantalla)=0;

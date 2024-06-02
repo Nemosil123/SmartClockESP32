@@ -91,9 +91,9 @@ void setup(void)
   #if DEBUG_MODE
     mngrCnfg.cf->AlarmaActiva=true;
     mngrCnfg.cf->horaAlarma = new HoraLocal(horaLoc.getHours(), horaLoc.getMinutes()+1, horaLoc.getSeconds());
-    mngrCnfg.cf->textoMensajes = "VIVA PABLO";
+    mngrCnfg.cf->textoMensajes = "LUCAS Y PABLO";
     mngrCnfg.cf->textoAlarma = "DESPIERTA!!!";
-    mngrCnfg.cf->textoDibujos = " PABLO ";
+    mngrCnfg.cf->textoDibujos = " PABLO Y LUCAS ";
     mngrCnfg.cf->AutoCambiarScreens=true;
   #endif
 
@@ -115,10 +115,6 @@ void setup(void)
 //int veces=0;
 void loop(void)
 {
-  // if(unaYnomas)
-  // {
-  //   unaYnomas=false;
-  // }
 
   if(botonPulsadoBT)
   {
@@ -164,14 +160,13 @@ void InitScreens()
 
   for(uint8_t i=0;i<mngrDsp.getNumDisplays();i++)
   {
-   // Serial.println(mngrDsp.GetDisplay(i)->getNombre().c_str());
     mngrDsp.GetDisplay(i)->Init(&pantalla);
   }
 
   pantalla.setIntensity(mngrCnfg.getBrillo());
   Serial.print("Brillo: ");
   Serial.println(mngrCnfg.getBrillo());
-  dspActiva = (DisplayHora*)mngrDsp.GetActiveDisplay(); // QUITAR EL CAST Y DEJAR COMO GENERICO
+  dspActiva = mngrDsp.GetActiveDisplay(); 
 
 }
 
@@ -257,7 +252,7 @@ void EncenderBT(){}
 void LeerConfigNueva()
 {
   mngrCnfg.cf->textoMensajes="PABLO ";
-  mngrCnfg.cf->AlarmaActiva=false;
+  //mngrCnfg.cf->AlarmaActiva=false;
   mngrCnfg.SetConfig(mngrDsp,&horaLoc);
   //mngrCnfg.cf->
 }
@@ -334,7 +329,7 @@ void salvarHora()
     prefs.putUShort("ho",horaLoc.hours);
     prefs.putUShort("mi",horaLoc.minutes);
     prefs.putUShort("se",horaLoc.seconds);
-    prefs.end();
+   // prefs.end();
 
 }
 

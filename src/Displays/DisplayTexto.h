@@ -19,7 +19,7 @@ class DisplayTexto : public IDisplay
          char* getTexto() override;
         void setTexto( char* );
         void Init(MD_Parola* pantalla) override;
-        uint32_t getMilliseconsSleep() const override;
+      //  uint32_t getMilliseconsSleep() const override;
         std::string getNombre() override;
         void setCnf(ConfigGeneral cnf) override;
         void Pintar(MD_Parola *pantalla) override;

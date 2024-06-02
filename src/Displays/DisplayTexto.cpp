@@ -240,9 +240,9 @@ void DisplayTexto::setCnf(ConfigGeneral cnfD)
 }
 
 
-uint32_t DisplayTexto::getMilliseconsSleep() const
-{
-    return 2000;
-}
+// uint32_t DisplayTexto::getMilliseconsSleep() const
+// {
+//     return 2000;
+// }
 
 
