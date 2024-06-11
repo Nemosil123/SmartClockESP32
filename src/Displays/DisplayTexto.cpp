@@ -137,20 +137,20 @@ DisplayTexto::DisplayTexto( char* msg):Texto(msg)
 }
 
 
-u_int8_t iControlMotiv = 0;
+//u_int8_t iControlMotiv = 0;
 //bool esMotivadora = false;
 MngrDisplays::sCatalogEfects efTmp;
 
  char* DisplayTexto::getTexto(bool& esMotiv)
 {
 
-  iControlMotiv++;
-  if(iControlMotiv>4)
-  {
+  // iControlMotiv++;
+  // if(iControlMotiv>4)
+  // {
     esMotiv = true;
    // Serial.print(" <mot> ");
     efTmp = MngrDisplays::getEfectoRnd();
-    iControlMotiv=0;
+    //iControlMotiv=0;
     // Obtener la cadena y su longitud
     const char* source = mensajesMotivacionales[idxFraseMotiv++].c_str();
     size_t length = std::strlen(source) + 1; // +1 para el carácter nulo
@@ -159,53 +159,77 @@ MngrDisplays::sCatalogEfects efTmp;
     // Copiar la cadena
     std::strcpy(cad, source);
     return cad;
-  }
-  else
-  {
-    //Serial.print(" <normal> ");
-    esMotiv=false;
-    return Texto;
-  }
+  // }
+  // else
+  // {
+  //   //Serial.print(" <normal> ");
+  //   esMotiv=false;
+  //   return Texto;
+  // }
 }
 
-bool unaSiunaNo=true;
+//bool unaSiunaNo=true;
+u_int8_t iFrase=0;
 bool scroolR = true;
 void DisplayTexto::Pintar(MD_Parola *pantalla)
 {
   if(pantalla->displayAnimate())
   {
-   // Serial.print('>');
-    bool esMot = false;
-    char* txt=getTexto(esMot);
-// #ifdef DEBUG_MODE
-//      Serial.print(unaSiunaNo);
-//      Serial.print(" esMot= ");
-//      Serial.print(esMot);
-//     //Serial.print(ef.effect==PA_SPRITE?"SI":"NO");
-// #endif
-    if(!esMot)
+
+    if(iFrase==0)
     {
-        if(unaSiunaNo)
-        {
-            textEffect_t t = PA_SCROLL_RIGHT;
-            if(scroolR)
-            {
-              t = PA_SCROLL_LEFT;
-            }
-            scroolR=!scroolR;
-            pantalla->displayScroll(txt, cnf.posicion,  t, 50);
-        }
-        else
-        { 
-          MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
-            pantalla->displayText(txt, cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
-        }
+      iFrase++;
+      MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
+      pantalla->displayText(getTexto(), cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+
+      //pantalla->displayScroll(getTexto(), cnf.posicion,  PA_SCROLL_LEFT, 50);
     }
-    else
+    else if(iFrase==1)
     {
-            pantalla->displayScroll(txt, cnf.posicion,  PA_SCROLL_LEFT, 50);
+      iFrase++;
+      //pantalla->displayScroll(Texto2, cnf.posicion,  PA_SCROLL_LEFT, 50);
+      MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
+      pantalla->displayText(Texto2, cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+
     }
-    unaSiunaNo=!unaSiunaNo;
+    else if(iFrase==2)
+    {
+
+      bool b=false;
+      char* txt=getTexto(b);
+      
+      iFrase=0;      
+      pantalla->displayScroll(getTexto(b), cnf.posicion,  PA_SCROLL_LEFT, 50);
+     // MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
+      //pantalla->displayText(getTexto(b), cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+
+    }
+
+    // bool esMot = false;
+    // char* txt=getTexto(esMot);
+    // if(!esMot)
+    // {
+    //     if(unaSiunaNo)
+    //     {
+    //         textEffect_t t = PA_SCROLL_RIGHT;
+    //         if(scroolR)
+    //         {
+    //           t = PA_SCROLL_LEFT;
+    //         }
+    //         scroolR=!scroolR;
+    //         pantalla->displayScroll(txt, cnf.posicion,  t, 50);
+    //     }
+    //     else
+    //     { 
+    //       MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
+    //         pantalla->displayText(txt, cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+    //     }
+    // }
+    // else
+    // {
+    //         pantalla->displayScroll(txt, cnf.posicion,  PA_SCROLL_LEFT, 50);
+    // }
+    // unaSiunaNo=!unaSiunaNo;
     pantalla->displayReset();
 
     // Serial.print(" TXT: ");
@@ -237,6 +261,7 @@ std::string DisplayTexto::getNombre()
 void DisplayTexto::setCnf(ConfigGeneral cnfD)
 {
     setTexto(cnfD.textoMensajes);
+    Texto2 = cnfD.textoMensajes2;
 }
 
 

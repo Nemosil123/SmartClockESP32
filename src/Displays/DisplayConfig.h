@@ -8,6 +8,7 @@ class DisplayConfig : public IDisplay
 {
 private:
     ConfigGeneral *cnfPpal;
+    HoraLocal *horaAlarma;
 public:
     DisplayConfig(/* args */);
     ~DisplayConfig();

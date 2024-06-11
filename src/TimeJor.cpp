@@ -48,6 +48,20 @@ String HoraLocal::getFormattedTime() {
     return String(buffer);
 }
 
-
-
-
+// Devuelve true si la hora actual está comprendida entre la inicial y final pasada por parámetros (solo horas en punto)
+// bool HoraLocal::isHoraBtwIniFin(u_int16_t hIni, u_int16_t hFin)
+// {
+//     Serial.print("Ahora="); Serial.print(hours);
+//     Serial.print(" HIni="); Serial.print(hIni);
+//     Serial.print(" HFin="); Serial.print(hFin);
+//     if(hFin>hIni)
+//     {
+//         return hours>=hIni && hours<=hFin;
+//     }
+//     else if (hFin<=hIni)
+//     {
+//         return hours>=hIni||hours<=hFin;
+//     }
+    
+//     return false;
+// }

@@ -7,6 +7,7 @@
 #include "Preferences.h"
 #include "songs.h"
 #include "button.h"
+#include "BluetoothSerial.h"
 
 /********* WIFI  *************/
 #ifdef MODULO_WIFI_PRESENTE
@@ -20,6 +21,7 @@
 /***************PINES ************/
 #define PIN_BTN_ALARM 21
 #define PIN_BTN_SET 12
+#define PIN_LED_MODO_BT 2
 #define PIN_BUZZER 4
 
 // Define the number of devices we have in the chain and the hardware interface
@@ -51,6 +53,7 @@ HoraLocal horaLoc(0,0,0);
 Ticker ticksHora;
 GestorConfig mngrCnfg(&horaLoc);
 Preferences prefs;
+BluetoothSerial BT;
 #endif
 
 /**********************************************/
@@ -66,6 +69,8 @@ void pulsoSeg();
 void salvarHora();
 void recuperarHora();
 void playCancion();
+//bool leerInterrBT();
+void callback_function(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 /****************************************/
 bool alarmaModoOn = false;
 
@@ -82,19 +87,26 @@ void setup(void)
   /************************ Configuración  PINES  ************************/
   btnAlarma = new button(PIN_BTN_ALARM);
   btnSet = new button(PIN_BTN_SET);
+  pinMode(PIN_LED_MODO_BT, OUTPUT);
+  pinMode(PIN_BUZZER,OUTPUT);
   btnAlarma->setup();
   btnSet->setup();
-  pinMode(PIN_BUZZER,OUTPUT);
   Serial.println("Init prefs");
   prefs.begin("mi-hora",false);
 
   #if DEBUG_MODE
     mngrCnfg.cf->AlarmaActiva=true;
+    Serial.println("Hora: "+horaLoc.getFormattedTime());
     mngrCnfg.cf->horaAlarma = new HoraLocal(horaLoc.getHours(), horaLoc.getMinutes()+1, horaLoc.getSeconds());
-    mngrCnfg.cf->textoMensajes = "LUCAS Y PABLO";
+    Serial.println("Hora alarma: "+mngrCnfg.cf->horaAlarma->getFormattedTime());
+
+    mngrCnfg.cf->textoMensajes = "PABLO";
+    mngrCnfg.cf->textoMensajes2 = "LUCAS";
     mngrCnfg.cf->textoAlarma = "DESPIERTA!!!";
     mngrCnfg.cf->textoDibujos = " PABLO Y LUCAS ";
     mngrCnfg.cf->AutoCambiarScreens=true;
+    // mngrCnfg.cf->HoraIniNoche=22;
+    // mngrCnfg.cf->HoraFinNoche=7;
   #endif
 
   mngrCnfg.SetConfig(mngrDsp, &horaLoc);
@@ -109,41 +121,59 @@ void setup(void)
 
   recuperarHora();
 
-}
-//bool unaYnomas=true;
 
-//int veces=0;
+}
+bool BTOn=false;
+
+bool ledOn=false;
+unsigned long  BTtimeInit=0;
+
 void loop(void)
 {
-
-  if(botonPulsadoBT)
+ // Serial.print("[");
+  //Serial.print(dspActiva->getNombre().c_str());
+  if(btnAlarma->isPushedAndReleasedLongTime()||BTOn)//leerInterrBT())
   {
+    Serial.println("ENCENDER BLUETOOOOOTH");
+    if(BTtimeInit==0)
+        BTtimeInit = millis();
     EncenderBT();
-    LeerConfigNueva();
+    delay(1000);
+    digitalWrite(PIN_LED_MODO_BT,ledOn ? LOW : HIGH);
+    ledOn=!ledOn;
+    if(millis()-BTtimeInit>120000) // 2 mins se apaga el BT
+    {
+      BTOn=false;
+      BTtimeInit=0;
+      digitalWrite(PIN_LED_MODO_BT,LOW);
+    }
   }
+  //Serial.print("+");
 
   if(btnAlarma->isPushedAndReleased())
   {
-    // prefs.putUShort("h1",horaLoc.seconds);
-    // Serial.println("Guardando: "+String(horaLoc.seconds));
-    //salvarHora();
     ApagarAlarma();
   }
+  //Serial.print("-");
+
   if(btnSet->isPushedAndReleased())
   {
-    // u_int16_t r = prefs.getUShort("h1");
-    // Serial.println("Recuperando: "+String(r));
-    // horaLoc.seconds=r;
-   // recuperarHora();
     CambiarDisplay();
+    Serial.println("cambiar disp end");
   }
+  // Serial.print("Al: ");
+  // Serial.print(mngrCnfg.cf->horaAlarma->getFormattedTime());
 
-    dspActiva->Pintar(&pantalla);
+  dspActiva->Pintar(&pantalla);
+  //Serial.print("/");
 
   if(alarmaModoOn)
   {
     playCancion();
   }
+ // Serial.println("]");
+
+ // delay(500);
 
 }
 
@@ -211,47 +241,90 @@ void InitWifiMngr()
 #endif
 }
 
-long milisAnt;
-long milsAnteriores;
+unsigned long  milisAnt;
+unsigned long  milsAnteriores;
 void pulsoSeg()
 {
   if(horaLoc.tick())
   {
+    Serial.println("salvar hora");
+    
     // Cambio de minuto así que guardamos hora
     salvarHora();
   }
   if(mngrCnfg.cf->AlarmaActiva)
   {
+   // Serial.println("Alarma Activa");
+    
 //    Serial.println(mngrCnfg.cf->horaAlarma->getFormattedTime());
     if(mngrCnfg.cf->horaAlarma->getHours()==horaLoc.getHours() &&
         mngrCnfg.cf->horaAlarma->getMinutes()==horaLoc.getMinutes() )
-        {
-          if(!alarmaModoOn && !bPulsadoAlarmaMientrasSonaba)
-          {
-              milisAnt = millis();
-              Serial.println("ALARMA ALARMA ALARMA");
-              alarmaModoOn = (true);
-          }
-        }
+    {
+      if(!alarmaModoOn && !bPulsadoAlarmaMientrasSonaba)
+      {
+          milisAnt = millis();
+          Serial.println("ALARMA ALARMA ALARMA");
+          alarmaModoOn = (true);
+      }
+    }
     else if(bPulsadoAlarmaMientrasSonaba&&millis()-milisAnt>6000)
     {
         bPulsadoAlarmaMientrasSonaba=false;
     }    
   }
+    //Serial.println("fin alarm activa");
+    //Serial.println("cambio automatico");
 
   if(millis()-milsAnteriores>300000) // 5 minutos y cambio display
   {
     CambiarDisplay();
-    Serial.println("cambio Display");
+    if(mngrDsp.getIdxActive()==3) // Nos saltamos el de config
+    {
+      CambiarDisplay();
+    }
+   // Serial.println("cambio Display");
     milsAnteriores = millis();
+    Serial.println("fin cambio automatico");
+
   }
+   // Serial.println("fin cambio auto hora");
+
+  // if(horaLoc.minutes==0 && horaLoc.seconds==0 && horaLoc.isHoraBtwIniFin(mngrCnfg.cf->HoraIniNoche,mngrCnfg.cf->HoraFinNoche)) // Chequeamos cada hora en punto
+  // {
+
+  //     Serial.println("Modo noche");
+  //       // Modo Noche
+  //       pantalla.setIntensity(0);
+  //       pantalla.displayReset();
+  //       dspActiva = mngrDsp.SetDisplayHora();
+
+  // }
 
 }
 
-void EncenderBT(){}
+// bool leerInterrBT()
+// {
+//   //Serial.println("leerInterrbt");
+//   int v = digitalRead(PIN_LED_MODO_BT);
+//   return (v==HIGH);
+// }
+
+void EncenderBT()
+{
+  if(!BTOn)
+  {
+    Serial.println("ENCENDER BLUETOOTH");
+    BT.begin("SMART DESPERTADOR"); // Nombre de tu Dispositivo Bluetooth y en modo esclavo
+    BTOn = true;
+    Serial.println("El dispositivo Bluetooth está listo para emparejar");
+    BT.register_callback(callback_function); // Registramos la función "callback_function" como función callback.
+  }
+}
+
 void LeerConfigNueva()
 {
-  mngrCnfg.cf->textoMensajes="PABLO ";
+  Serial.println("Set config nueva a los displays");
+ // mngrCnfg.cf->textoMensajes="PABLO ";
   //mngrCnfg.cf->AlarmaActiva=false;
   mngrCnfg.SetConfig(mngrDsp,&horaLoc);
   //mngrCnfg.cf->
@@ -278,7 +351,8 @@ void CambiarDisplay()
   Serial.print(String(dspActiva->getNombre().c_str())+"] Next Display [");
   dspActiva = mngrDsp.NextDisplay();
   Serial.println(String(dspActiva->getNombre().c_str()));
-  LeerConfigNueva();
+      Serial.println("cmb display 2");
+
   milisAnt = millis();
 
 
@@ -320,7 +394,7 @@ void recuperarHora()
     horaLoc.hours=prefs.getUShort("ho",0);
     horaLoc.minutes=prefs.getUShort("mi",0);
     horaLoc.seconds=prefs.getUShort("se",0);
-       Serial.println(horaLoc.getFormattedTime());
+    Serial.println(horaLoc.getFormattedTime());
 }
 
 void salvarHora()
@@ -330,8 +404,47 @@ void salvarHora()
     prefs.putUShort("mi",horaLoc.minutes);
     prefs.putUShort("se",horaLoc.seconds);
    // prefs.end();
+    Serial.println("Salvada");
 
 }
 
+void callback_function(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
+  if (event == ESP_SPP_START_EVT) {
+    Serial.println("Inicializado bluetooth");
+  }
+  else if (event == ESP_SPP_SRV_OPEN_EVT ) {
+    Serial.println("Cliente BT conectado");
+    digitalWrite(PIN_LED_MODO_BT, HIGH );
 
+  }
+  else if (event == ESP_SPP_CLOSE_EVT  ) {
+    Serial.println("Cliente BT desconectado");
+  }
+  else if (event == ESP_SPP_DATA_IND_EVT ) {
+    Serial.println("Datos recibidos por BT");
+    if(BT.available())
+    {
+          char cad[327];
+          int idx=0;
+        while (BT.available()) { // Mientras haya datos por recibir
+          int incoming = BT.read(); // Lee un byte de los datos recibidos
+          Serial.print("Recibido: ");
+          Serial.print(incoming);
+          Serial.println((char)incoming);
+
+          cad[idx++]=(char)incoming;
+
+        }
+        Serial.println(cad);
+        mngrCnfg.CargarConfig(cad);
+        Serial.print("Hora ACtual cargada: ");
+        Serial.println(horaLoc.getFormattedTime());
+        LeerConfigNueva();
+        BTOn=false;
+        digitalWrite(PIN_LED_MODO_BT, LOW );
+
+        BT.end();
+    }
+  }
+}
 

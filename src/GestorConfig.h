@@ -22,7 +22,7 @@ public:
     GestorConfig(HoraLocal* ahora) ;
     ~GestorConfig();
     void SetConfig(MngrDisplays mngr, HoraLocal* ahora);
-   // MngrDisplays::sCatalogEfects getEfectScreen(u_int8_t indxScreen);
+    void CargarConfig(char* cadenaLeida);
 };
 #endif
 

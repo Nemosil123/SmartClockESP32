@@ -15,7 +15,7 @@ public:
     u_int16_t getMinutes();
     u_int16_t getSeconds();
     String getFormattedTime();
-
+    //bool isHoraBtwIniFin(u_int16_t hIni, u_int16_t hFin);
 
 };
 #endif

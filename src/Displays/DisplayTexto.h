@@ -11,6 +11,7 @@ class DisplayTexto : public IDisplay
     private:
         u_int16_t idxFraseMotiv=0;
          char* Texto;
+         char* Texto2;
 
     public:
 

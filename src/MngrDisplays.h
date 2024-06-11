@@ -45,7 +45,7 @@ public:
 #else
     void Init(HoraLocal* hora);
 #endif
-
+    IDisplay* SetDisplayHora();
     IDisplay* GetActiveDisplay();
     IDisplay* GetDisplay(u_int8_t idx);
     IDisplay* NextDisplay();

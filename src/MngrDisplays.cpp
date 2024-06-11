@@ -63,6 +63,11 @@ void MngrDisplays::Init(HoraLocal* hora)
     LstDisplays[3]= new DisplayConfig();
 }
 
+IDisplay* MngrDisplays::SetDisplayHora()
+{
+    idxDisplayActivo=1;
+    return GetActiveDisplay();
+}
 
 IDisplay *MngrDisplays::GetActiveDisplay()
 {

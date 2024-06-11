@@ -11,8 +11,8 @@ private:
     // bool botonPulsadoYSoltadoLargaDuracion=false;
     // bool botonPulsado=false;
     // bool botonSoltado=false;
-    // unsigned long lastDebounceTime = 0;
-    // unsigned long debounceDelay = 50; // Tiempo de retardo para el anti-rebote (en milisegundos)
+    unsigned long lastClickTime = 0;
+    unsigned long longPushTime = 3000; // Tiempo que se considera pulsación larga en milisc
 
 public:
 
@@ -21,7 +21,7 @@ public:
     // bool isPushed();
    // bool isReleased();
     bool isPushedAndReleased();
-    // // bool isLongPushedAndReleased();
+    bool isPushedAndReleasedLongTime();
     // void check();
 
     ~button();

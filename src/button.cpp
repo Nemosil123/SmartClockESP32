@@ -27,20 +27,36 @@ void button::setup()
 
 
 
-// bool button::isLongPushedAndReleased()
-// {
-//     // Resetea el botón para volver a ser usado
-//     bool dev=false;
-
-
-//     return dev;
-// }
+bool button::isPushedAndReleasedLongTime()
+{
+    bool dev=false;
+    int lectNew = digitalRead(PIN);
+    if(lectNew==HIGH && lectOld==LOW)
+    {
+        Serial.println("PULSACIÓN");
+        lastClickTime = millis();
+        //dev = true;
+    }
+    if(lectNew==LOW && lectOld==HIGH)
+    {
+        Serial.println("RELEASE");
+        if(millis()-lastClickTime>longPushTime)
+        {
+            dev = true;
+        }
+    }
+    lectOld=lectNew;
+   // delay(500);
+    return dev;
+}
 
 bool button::isPushedAndReleased()
 {
+    //Serial.println("Pulsado");
     
     bool dev=false;
     int lectNew = digitalRead(PIN);
+    //Serial.println("Pulsado");
 
 
     if(lectNew==HIGH && lectOld==LOW)
@@ -49,7 +65,8 @@ bool button::isPushedAndReleased()
         dev = true;
     }
     lectOld=lectNew;
-   // delay(500);
+   // Serial.print(".");
+
     return dev;
 }
 
