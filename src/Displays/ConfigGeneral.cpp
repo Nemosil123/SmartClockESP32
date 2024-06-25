@@ -2,4 +2,7 @@
 
 ConfigGeneral::ConfigGeneral(HoraLocal* ahora) : horaActual(ahora)
 {
+
 }
+
+

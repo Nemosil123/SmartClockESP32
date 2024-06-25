@@ -11,13 +11,13 @@ DisplayDibujos::DisplayDibujos()
 u_int16_t curString =0;
 char *DisplayDibujos::getTexto()
 {
-    return texto;
+    return nullptr;
 }
 
 void DisplayDibujos::Init(MD_Parola *pantalla)
 {
     Serial.println("Init DisplayDibujos");
-    pantalla->displayText(getTexto(), PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
+    pantalla->displayText(texto.c_str(), PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
    //pantalla.setSpriteData(rocket, W_ROCKET, F_ROCKET, rocket, W_ROCKET, F_ROCKET);
     pantalla->setSpriteData(wave, W_WAVE, F_WAVE, wave, F_WAVE, F_WAVE);
 }
@@ -37,10 +37,9 @@ void DisplayDibujos::Pintar(MD_Parola *pantalla)
       {
 
 
-        char* txt=getTexto();
 
         str_sprite sp = getSpriteRnd();
-        pantalla->displayText(txt, PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
+        pantalla->displayText(texto.c_str(), PA_CENTER, 50, 1000, PA_SPRITE, PA_SCROLL_LEFT);
         pantalla->setSpriteData(sp.data, sp.width, sp.frames, sp.data, sp.width, sp.frames);
        // pantalla->setSpeedInOut(7,5);
 

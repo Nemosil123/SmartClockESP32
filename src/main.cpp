@@ -54,6 +54,8 @@ Ticker ticksHora;
 GestorConfig mngrCnfg(&horaLoc);
 Preferences prefs;
 BluetoothSerial BT;
+bool modoNoche=false;
+
 #endif
 
 /**********************************************/
@@ -67,7 +69,7 @@ void InitWifiMngr();
 void InitScreens();
 void pulsoSeg();
 void salvarHora();
-void recuperarHora();
+void recuperarCnfg();
 void playCancion();
 //bool leerInterrBT();
 void callback_function(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
@@ -82,7 +84,7 @@ void setup(void)
   ticksHora.attach(1,pulsoSeg);
 
   Serial.println("Inicializando Screens");
-  InitScreens(); 
+  InitScreens();
 
   /************************ Configuración  PINES  ************************/
   btnAlarma = new button(PIN_BTN_ALARM);
@@ -95,43 +97,41 @@ void setup(void)
   prefs.begin("mi-hora",false);
 
   #if DEBUG_MODE
-    mngrCnfg.cf->AlarmaActiva=true;
+  //  mngrCnfg.cf->AlarmaActiva=true;
     Serial.println("Hora: "+horaLoc.getFormattedTime());
-    mngrCnfg.cf->horaAlarma = new HoraLocal(horaLoc.getHours(), horaLoc.getMinutes()+1, horaLoc.getSeconds());
-    Serial.println("Hora alarma: "+mngrCnfg.cf->horaAlarma->getFormattedTime());
+  // // mngrCnfg.cf->horaAlarma = new HoraLocal(horaLoc.getHours(), horaLoc.getMinutes()+1, horaLoc.getSeconds());
+   // Serial.println("Hora alarma: "+mngrCnfg.cf->horaAlarma->getFormattedTime());
 
-    mngrCnfg.cf->textoMensajes = "PABLO";
-    mngrCnfg.cf->textoMensajes2 = "LUCAS";
-    mngrCnfg.cf->textoAlarma = "DESPIERTA!!!";
-    mngrCnfg.cf->textoDibujos = " PABLO Y LUCAS ";
-    mngrCnfg.cf->AutoCambiarScreens=true;
-    // mngrCnfg.cf->HoraIniNoche=22;
-    // mngrCnfg.cf->HoraFinNoche=7;
+    // mngrCnfg.cf->textoMensajes = "PABLO";
+    // mngrCnfg.cf->textoMensajes2 = "LUCAS";
+    // mngrCnfg.cf->textoAlarma = "DESPIERTA!!!";
+    // mngrCnfg.cf->textoDibujos = " PABLO Y LUCAS ";
+    // mngrCnfg.cf->diaActual = 1;
+    // mngrCnfg.cf->AutoCambiarScreens=true;
   #endif
 
-  mngrCnfg.SetConfig(mngrDsp, &horaLoc);
-  Serial.println("Fin SetCnf");
 
-// #ifdef DEBUG_MODE
-//    mngrDsp.NextDisplay();
-//  // mngrDsp.NextDisplay();
-// #endif
+  recuperarCnfg();
+
+    Serial.println(mngrCnfg.cf->textoMensajes);
+
+  mngrCnfg.SetConfig(mngrDsp, &horaLoc);
+
 
   dspActiva = mngrDsp.GetActiveDisplay();
 
-  recuperarHora();
-
+  
 
 }
 bool BTOn=false;
+bool BTemparejado=false;
 
 bool ledOn=false;
 unsigned long  BTtimeInit=0;
 
 void loop(void)
 {
- // Serial.print("[");
-  //Serial.print(dspActiva->getNombre().c_str());
+
   if(btnAlarma->isPushedAndReleasedLongTime()||BTOn)//leerInterrBT())
   {
     Serial.println("ENCENDER BLUETOOOOOTH");
@@ -139,41 +139,66 @@ void loop(void)
         BTtimeInit = millis();
     EncenderBT();
     delay(1000);
-    digitalWrite(PIN_LED_MODO_BT,ledOn ? LOW : HIGH);
-    ledOn=!ledOn;
-    if(millis()-BTtimeInit>120000) // 2 mins se apaga el BT
+    if(!BTemparejado)
+    {
+      digitalWrite(PIN_LED_MODO_BT,ledOn ? LOW : HIGH);
+      ledOn=!ledOn;
+    }
+    else
+    {
+      digitalWrite(PIN_LED_MODO_BT, HIGH);
+      BTemparejado = false;
+    }
+    if(millis()-BTtimeInit>360000) // 6 mins se apaga el BT
     {
       BTOn=false;
       BTtimeInit=0;
       digitalWrite(PIN_LED_MODO_BT,LOW);
     }
   }
-  //Serial.print("+");
 
   if(btnAlarma->isPushedAndReleased())
   {
     ApagarAlarma();
   }
-  //Serial.print("-");
+
+  // if(btnSet->isPushedAndReleasedLongTime())
+  // {
+
+  //   // Activamos o desactivamos alarma
+  //   mngrCnfg.cf->AlarmaActiva = !mngrCnfg.cf->AlarmaActiva;
+  //    Serial.print("Alarma modo: ");
+  //   Serial.println(mngrCnfg.cf->AlarmaActiva);
+  // }
 
   if(btnSet->isPushedAndReleased())
   {
     CambiarDisplay();
     Serial.println("cambiar disp end");
   }
-  // Serial.print("Al: ");
-  // Serial.print(mngrCnfg.cf->horaAlarma->getFormattedTime());
 
-  dspActiva->Pintar(&pantalla);
-  //Serial.print("/");
+  if(!modoNoche)
+  {
+      dspActiva->Pintar(&pantalla);
+  }
+  else
+  {
+      if(horaLoc.getSeconds()<6&&horaLoc.getSeconds()>0)
+      {
+          dspActiva->Pintar(&pantalla);
+      }
+      else
+      {
+          dspActiva = mngrDsp.SetDisplayHora();
+          pantalla.displayClear();
+      }
+  }
 
   if(alarmaModoOn)
   {
+    dspActiva->Pintar(&pantalla);
     playCancion();
   }
- // Serial.println("]");
-
- // delay(500);
 
 }
 
@@ -196,14 +221,14 @@ void InitScreens()
   pantalla.setIntensity(mngrCnfg.getBrillo());
   Serial.print("Brillo: ");
   Serial.println(mngrCnfg.getBrillo());
-  dspActiva = mngrDsp.GetActiveDisplay(); 
+  dspActiva = mngrDsp.GetActiveDisplay();
 
 }
 
 void InitWifiMngr()
 {
     #ifdef MODULO_WIFI_PRESENTE
-    
+
     //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wm;
     wm.setConnectRetries(3);
@@ -220,9 +245,9 @@ void InitWifiMngr()
     if(!res) {
         Serial.println("No se puede conectar");
         // ESP.restart();
-    } 
+    }
     else {
-        //if you get here you have connected to the WiFi    
+        //if you get here you have connected to the WiFi
         Serial.println("connected...yeey :)");
     }
 
@@ -237,7 +262,7 @@ void InitWifiMngr()
     Serial.print(horaTZ.minute());
 #else
   horaLoc = HoraLocal(22,35,0);
-  Serial.print(horaLoc.getFormattedTime());
+ // Serial.print(horaLoc.getFormattedTime());
 #endif
 }
 
@@ -248,32 +273,28 @@ void pulsoSeg()
   if(horaLoc.tick())
   {
     Serial.println("salvar hora");
-    
+
     // Cambio de minuto así que guardamos hora
     salvarHora();
   }
   if(mngrCnfg.cf->AlarmaActiva)
   {
-   // Serial.println("Alarma Activa");
-    
-//    Serial.println(mngrCnfg.cf->horaAlarma->getFormattedTime());
     if(mngrCnfg.cf->horaAlarma->getHours()==horaLoc.getHours() &&
         mngrCnfg.cf->horaAlarma->getMinutes()==horaLoc.getMinutes() )
     {
       if(!alarmaModoOn && !bPulsadoAlarmaMientrasSonaba)
       {
           milisAnt = millis();
-          Serial.println("ALARMA ALARMA ALARMA");
+          dspActiva= mngrDsp.SetDisplayHora();
           alarmaModoOn = (true);
       }
     }
     else if(bPulsadoAlarmaMientrasSonaba&&millis()-milisAnt>6000)
     {
         bPulsadoAlarmaMientrasSonaba=false;
-    }    
+    }
   }
-    //Serial.println("fin alarm activa");
-    //Serial.println("cambio automatico");
+
 
   if(millis()-milsAnteriores>300000) // 5 minutos y cambio display
   {
@@ -282,23 +303,26 @@ void pulsoSeg()
     {
       CambiarDisplay();
     }
-   // Serial.println("cambio Display");
     milsAnteriores = millis();
-    Serial.println("fin cambio automatico");
-
   }
-   // Serial.println("fin cambio auto hora");
 
-  // if(horaLoc.minutes==0 && horaLoc.seconds==0 && horaLoc.isHoraBtwIniFin(mngrCnfg.cf->HoraIniNoche,mngrCnfg.cf->HoraFinNoche)) // Chequeamos cada hora en punto
-  // {
+  if(horaLoc.minutes==0 && horaLoc.seconds==0 ) // Chequeamos cada hora en punto si estamos en modo noche
+  {
+    if(horaLoc.isHoraBtwIniFin(mngrCnfg.cf->HoraIniNoche,mngrCnfg.cf->HoraFinNoche))
+    {
+      Serial.println("Modo noche");
+        // Modo Noche
+        modoNoche=true;
+        pantalla.setIntensity(0);
+        pantalla.displayReset();
+        dspActiva = mngrDsp.SetDisplayHora();
+    }
+    else
+    {
+      modoNoche=false;
+    }
+  }
 
-  //     Serial.println("Modo noche");
-  //       // Modo Noche
-  //       pantalla.setIntensity(0);
-  //       pantalla.displayReset();
-  //       dspActiva = mngrDsp.SetDisplayHora();
-
-  // }
 
 }
 
@@ -323,11 +347,7 @@ void EncenderBT()
 
 void LeerConfigNueva()
 {
-  Serial.println("Set config nueva a los displays");
- // mngrCnfg.cf->textoMensajes="PABLO ";
-  //mngrCnfg.cf->AlarmaActiva=false;
   mngrCnfg.SetConfig(mngrDsp,&horaLoc);
-  //mngrCnfg.cf->
 }
 void ApagarAlarma()
 {
@@ -348,10 +368,11 @@ void ApagarAlarma()
 }
 void CambiarDisplay()
 {
-  Serial.print(String(dspActiva->getNombre().c_str())+"] Next Display [");
+
+//  Serial.print(String(dspActiva->getNombre().c_str())+"] Next Display [");
   dspActiva = mngrDsp.NextDisplay();
-  Serial.println(String(dspActiva->getNombre().c_str()));
-      Serial.println("cmb display 2");
+  //Serial.println(String(dspActiva->getNombre().c_str()));
+    //  Serial.println("cmb display 2");
 
   milisAnt = millis();
 
@@ -377,7 +398,7 @@ void playCancion()
       //the note's duration + 30% seems to work well:
       int pauseBetweenNotes = duration * 1.30;
       delay(pauseBetweenNotes);
-      
+
       //stop the tone playing:
       noTone(PIN_BUZZER);
       if(btnAlarma->isPushedAndReleased())
@@ -388,8 +409,42 @@ void playCancion()
   }
 }
 
-void recuperarHora()
+void recuperarCnfg()
 {
+
+   Serial.println("recuperando info de config");
+ //   char cad[427];
+ //   if(prefs.getString("cnf",cad,427)>1)
+  //  {
+  //      mngrCnfg.CargarConfig(cad);
+   // }
+    mngrCnfg.cf->AlarmaActiva =  prefs.getBool("alOn",false);
+    Serial.print("Alarma: ");
+    Serial.println(mngrCnfg.cf->AlarmaActiva);
+    mngrCnfg.cf->diaActual=prefs.getUInt("diaA",1);
+        Serial.print("Dia: ");
+    Serial.println(mngrCnfg.cf->diaActual);
+
+    uint16_t h= prefs.getUInt("horaA",0);
+    uint16_t m= prefs.getUInt("MinA",0);
+    mngrCnfg.cf->horaAlarma=new HoraLocal(h,m,0);
+
+    Serial.print("Hora Al: ");
+    Serial.println(mngrCnfg.cf->horaAlarma->getFormattedTime());
+
+    mngrCnfg.cf->textoDibujos=prefs.getString("txtD","HAPPY FAMILY");
+    Serial.print("textoDibujos: ");
+        Serial.println(mngrCnfg.cf->textoDibujos);
+    mngrCnfg.cf->textoMensajes=prefs.getString("txtMsg","LUCAS");
+    Serial.print("txtMsg: ");
+        Serial.println(mngrCnfg.cf->textoMensajes);
+  
+    mngrCnfg.cf->textoMensajes2=prefs.getString("txt2","PABLO");
+    Serial.print("textomensaje2: ");
+    Serial.println(mngrCnfg.cf->textoMensajes2);
+
+   Serial.println("Recuperada y cargada info de config");
+
     Serial.print("RECUPERAR hora en mem no volatil: ");
     horaLoc.hours=prefs.getUShort("ho",0);
     horaLoc.minutes=prefs.getUShort("mi",0);
@@ -414,29 +469,44 @@ void callback_function(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
   }
   else if (event == ESP_SPP_SRV_OPEN_EVT ) {
     Serial.println("Cliente BT conectado");
-    digitalWrite(PIN_LED_MODO_BT, HIGH );
+    BTemparejado = true;
 
   }
   else if (event == ESP_SPP_CLOSE_EVT  ) {
     Serial.println("Cliente BT desconectado");
+    digitalWrite(PIN_LED_MODO_BT,LOW);
   }
   else if (event == ESP_SPP_DATA_IND_EVT ) {
     Serial.println("Datos recibidos por BT");
     if(BT.available())
     {
-          char cad[327];
+          char cad[427];
           int idx=0;
         while (BT.available()) { // Mientras haya datos por recibir
           int incoming = BT.read(); // Lee un byte de los datos recibidos
-          Serial.print("Recibido: ");
-          Serial.print(incoming);
-          Serial.println((char)incoming);
+         // Serial.print("Recibido: ");
+         // Serial.print(incoming);
+          //Serial.println((char)incoming);
 
           cad[idx++]=(char)incoming;
 
         }
+       // prefs.freeEntries();
         Serial.println(cad);
+        Serial.println("Guardada en mem permanente conf");
+        
+
         mngrCnfg.CargarConfig(cad);
+
+        prefs.putBool("alOn",mngrCnfg.cf->AlarmaActiva);
+        prefs.putUInt("diaA",mngrCnfg.cf->diaActual);
+        prefs.putUInt("horaA",mngrCnfg.cf->horaAlarma->hours);
+        prefs.putUInt("MinA",mngrCnfg.cf->horaAlarma->minutes);
+        prefs.putString("txtD",mngrCnfg.cf->textoDibujos);
+        prefs.putString("txtMsg",mngrCnfg.cf->textoMensajes);
+        prefs.putString("txt2",mngrCnfg.cf->textoMensajes2);
+        
+        Serial.println("Guardado en memoria la configuracion");
         Serial.print("Hora ACtual cargada: ");
         Serial.println(horaLoc.getFormattedTime());
         LeerConfigNueva();

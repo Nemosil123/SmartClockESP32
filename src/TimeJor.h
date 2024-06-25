@@ -7,6 +7,7 @@ class HoraLocal
 private:
 public:
     HoraLocal(u_int16_t h, u_int16_t m, u_int16_t s);
+    u_int8_t diaActual;
     u_int16_t hours;
     u_int16_t minutes;
     u_int16_t seconds;
@@ -15,7 +16,7 @@ public:
     u_int16_t getMinutes();
     u_int16_t getSeconds();
     String getFormattedTime();
-    //bool isHoraBtwIniFin(u_int16_t hIni, u_int16_t hFin);
+    bool isHoraBtwIniFin(u_int16_t hIni, u_int16_t hFin);
 
 };
 #endif

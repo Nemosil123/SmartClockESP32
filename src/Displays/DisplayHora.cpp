@@ -15,8 +15,15 @@ DisplayHora::DisplayHora(HoraLocal* h) : horaActual(h)
 }
 
 bool bUnoSiUnoNo = false;
+long millisDia=0;
 char* DisplayHora::getTexto()
 {
+    if(millis()-millisDia>30000)
+    {
+        millisDia= millis();
+        return DiaSemanaLargo();
+    }
+
     bUnoSiUnoNo = !bUnoSiUnoNo;
 
 #ifdef MODULO_WIFI_PRESENTE
@@ -41,21 +48,19 @@ void DisplayHora::Init(MD_Parola *pantalla)
 {
 }
 
+
+
 void DisplayHora::Pintar(MD_Parola *pantalla)
 {
     if(pantalla->displayAnimate())
     {
+
         char* t = getTexto();
-       // Serial.println(t);
         pantalla->displayText(t, PA_CENTER, 0, 1000, PA_NO_EFFECT, PA_NO_EFFECT);
         pantalla->displayReset();
     }
 }
 
-// uint32_t DisplayHora::getMilliseconsSleep() const
-// {
-//     return 1000;
-// }
 
 std::string DisplayHora::getNombre()
 {
@@ -65,7 +70,44 @@ std::string DisplayHora::getNombre()
 void DisplayHora::setCnf(ConfigGeneral cf)
 {
     horaActual = cf.horaActual;
+    horaActual->diaActual = cf.diaActual;
     horaAlarm = cf.horaAlarma;
     AlarmActiva = cf.AlarmaActiva;
-    setTexto(cf.textoAlarma);
+    //Serial.println("Dia: "+String(cf.diaActual));
+    
+    //setTexto(cf.textoAlarma);
 }
+
+char * DisplayHora::DiaSemanaLargo()
+{
+    
+    switch (horaActual->diaActual)
+    {
+        case 1:
+            return "Lunes";
+            break;
+        case 2:
+            return "Martes";
+            break;
+        case 3:
+            return "Miercoles";
+            break;
+        case 4:
+            return "Jueves";
+            break;
+        case 5:
+            return "Viernes";
+            break;
+        case 6:
+            return "Sabado";
+            break;
+        case 7:
+            return "Domingo";
+            break;
+        default:
+            return "NO DIA";
+            break;
+    }
+}
+
+

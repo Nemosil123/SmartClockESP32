@@ -180,8 +180,8 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
     {
       iFrase++;
       MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
-      pantalla->displayText(getTexto(), cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
-
+      pantalla->displayText(Texto.c_str(), cnf.posicion, efR.speed, efR.pause, efR.effect, PA_SCROLL_LEFT);
+      Serial.println(Texto.c_str());
       //pantalla->displayScroll(getTexto(), cnf.posicion,  PA_SCROLL_LEFT, 50);
     }
     else if(iFrase==1)
@@ -189,7 +189,8 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
       iFrase++;
       //pantalla->displayScroll(Texto2, cnf.posicion,  PA_SCROLL_LEFT, 50);
       MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
-      pantalla->displayText(Texto2, cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+      pantalla->displayText(Texto2.c_str(), cnf.posicion, efR.speed, efR.pause, efR.effect, PA_SCROLL_LEFT);
+      Serial.println(Texto2);
 
     }
     else if(iFrase==2)
@@ -199,9 +200,10 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
       char* txt=getTexto(b);
       
       iFrase=0;      
-      pantalla->displayScroll(getTexto(b), cnf.posicion,  PA_SCROLL_LEFT, 50);
+      pantalla->displayScroll(txt, cnf.posicion,  PA_SCROLL_LEFT, 50);
      // MngrDisplays::sCatalogEfects efR = MngrDisplays::getEfectoRnd();
       //pantalla->displayText(getTexto(b), cnf.posicion, efR.speed, efR.pause, efR.effect, efR.effect);
+      Serial.println(txt);
 
     }
 
@@ -240,7 +242,7 @@ void DisplayTexto::Pintar(MD_Parola *pantalla)
 
 char* DisplayTexto::getTexto()
 {
-    return Texto;
+    return nullptr;
 }
 
 void DisplayTexto::setTexto( char* txt)
@@ -260,7 +262,7 @@ std::string DisplayTexto::getNombre()
 
 void DisplayTexto::setCnf(ConfigGeneral cnfD)
 {
-    setTexto(cnfD.textoMensajes);
+    Texto = cnfD.textoMensajes;
     Texto2 = cnfD.textoMensajes2;
 }
 

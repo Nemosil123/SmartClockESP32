@@ -33,11 +33,14 @@ u_int8_t GestorConfig::getBrillo()
 
 void GestorConfig::SetConfig(MngrDisplays mngr, HoraLocal* ahora)
 {
+    //Serial.println("Dia: "+String(cf->diaActual));
     
 
     // Config Texto
     DisplayTexto* dspTxt =  (DisplayTexto*)mngr.GetDisplay(0);
     //dspTxt->setTexto(this->txtPpal);
+    Serial.println(cf->textoMensajes);
+
     dspTxt->setCnf(*cf);
 
     // Config Hora
@@ -69,8 +72,11 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
         return;
     }
     Serial.print("textomensaje1: ");
-    Serial.println(token);
-    cf->textoMensajes = token+'\0';
+   Serial.print(token);
+   Serial.print("-->");
+    cf->textoMensajes = String(token+'\0');
+    Serial.println(cf->textoMensajes);
+
     /*****************  [textomensaje 2] *********************************/
 
     token = strtok(nullptr, "#");
@@ -81,7 +87,7 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
     }
     Serial.print("textomensaje 2: ");
     Serial.println(token);
-    cf->textoMensajes2 = token+'\0';
+    cf->textoMensajes2 = String(token+'\0');
     //[]
     /*****************  [textoAlaram] *********************************/
     token = strtok(nullptr, "#");
@@ -92,7 +98,7 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
     }
     Serial.print("textoAlarma: ");
     Serial.println(token);
-    cf->textoAlarma = token+'\0';
+    cf->textoAlarma = String(token+'\0');
 
     /*****************  [textoDibujos] *********************************/
     token = strtok(nullptr, "#");
@@ -103,7 +109,7 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
     }
     Serial.print("texto Dibujos: ");
     Serial.println(token);
-    cf->textoDibujos = token+'\0';
+    cf->textoDibujos = String(token+'\0');
 
 
     /*****************  [Hora Actual] *********************************/
@@ -142,9 +148,34 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
         Serial.println("ERROR: no se enuentra info [DiaActual]");
         return;
     }
+
+
+    switch (token[0])
+    {
+    case 'L':
+        cf->diaActual = 1; 
+        break;
+    case 'M':
+        cf->diaActual = 2; 
+        break;
+    case 'X':
+        cf->diaActual = 3; 
+        break;
+    case 'J':
+        cf->diaActual = 4; 
+        break;
+    case 'V':
+        cf->diaActual = 5; 
+        break;
+    case 'S':
+        cf->diaActual = 6; 
+        break;
+    case 'D':
+        cf->diaActual = 7; 
+        break;
+    }
     Serial.print("Dia Actual: ");
-    Serial.println(token);
-    //cf->diaActual = token+'\0';
+    Serial.println(token+String(cf->diaActual));
 
     /*****************  [HoraAlarma] *********************************/
     token = strtok(nullptr, "#");
@@ -154,24 +185,63 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
         return;
     }
     Serial.print("Alarma: ");
-    Serial.println(token);
-    extractedChars[0] = token[0]; // Posición 3 (índice 2)
-    extractedChars[1] = token[1]; // Posición 4 (índice 3)
-    extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
+  //  Serial.println(token);
 
-      // Convertir los caracteres extraídos a un entero
-    cf->horaAlarma->hours = atoi(extractedChars);
+    //cf->horaAlarma->hours = atoi(token);
+    u_int16_t horas;
+    sscanf(token+'\0', "%d", &horas);
+    cf->horaAlarma->hours =horas;
+    
+   // Serial.println(horas );
+   // Serial.println(cf->horaAlarma->hours );
 
-    extractedChars[0] = token[3]; 
-    extractedChars[1] = token[4]; 
-    extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
-    cf->horaAlarma->minutes = atoi(extractedChars);
+    token = strtok(nullptr, "#");
+    if(token==nullptr)
+    {
+        Serial.println("ERROR: no se enuentra info [m]");
+        return;
+    }
+  //  Serial.println(token);
+    // cf->horaAlarma->minutes = atoi(token+'\0');
+       u_int16_t m;
+    sscanf(token, "%d", &m);
+    cf->horaAlarma->minutes =m;
+  //  Serial.println(cf->horaAlarma->minutes );
+
+    token = strtok(nullptr, "#");
+    if(token==nullptr)
+    {
+        Serial.println("ERROR: no se enuentra info [s]");
+        return;
+    }
+    cf->horaAlarma = new HoraLocal(horas,m,0);
+    // Serial.println(token);
+    // cf->horaAlarma->seconds = atoi(token+'\0');
+    // Serial.println(cf->horaAlarma->seconds );
+    // extractedChars[0] = token[0]; // Posición 3 (índice 2)
+    // extractedChars[1] = token[1]; // Posición 4 (índice 3)
+    // extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
+
+    //   // Convertir los caracteres extraídos a un entero
+    // cf->horaAlarma->hours = atoi(extractedChars);
+    // Serial.println(extractedChars );
+    // Serial.println(cf->horaAlarma->hours);
+
+    // extractedChars[0] = token[3]; 
+    // extractedChars[1] = token[4]; 
+    // extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
+    // cf->horaAlarma->minutes = atoi(extractedChars);
+    // Serial.println(extractedChars );
+    // Serial.println(cf->horaAlarma->minutes );
 
     
-    extractedChars[0] = token[6]; 
-    extractedChars[1] = token[7]; 
-    extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
-    cf->horaAlarma->seconds = atoi(extractedChars);
+    // extractedChars[0] = token[6]; 
+    // extractedChars[1] = token[7]; 
+    // extractedChars[2] = '\0'; // Terminador nulo para formar una cadena válida
+    // cf->horaAlarma->seconds = atoi(extractedChars);
+    // Serial.println(extractedChars );
+    // Serial.println(cf->horaAlarma->seconds );
+
     Serial.println(cf->horaAlarma->getFormattedTime());
 
     /*****************  [AlarmaActiva] *********************************/
@@ -197,24 +267,24 @@ void GestorConfig::CargarConfig(char *cadenaLeida)
     //cf-> = token[0]=='1';;
         
     /*****************  [HoraIniModoNoche] *********************************/
-    // token = strtok(nullptr, "#");
-    // if(token==nullptr)
-    // {
-    //     Serial.println("ERROR: no se enuentra info [HoraIniModoNoche]");
-    //     return;
-    // }
-    // Serial.print("Mono Noche Empieza: ");
-    // Serial.println(token);
-    // cf->HoraIniNoche =  std::stoi(token);
+    token = strtok(nullptr, "#");
+    if(token==nullptr)
+    {
+        Serial.println("ERROR: no se enuentra info [HoraIniModoNoche]");
+        return;
+    }
+    Serial.print("Mono Noche Empieza: ");
+    Serial.println(token);
+    cf->HoraIniNoche =  std::stoi(token);
             
-    // /*****************  [HoraFInModoNoche] *********************************/
-    // token = strtok(nullptr, "#");
-    // if(token==nullptr)
-    // {
-    //     Serial.println("ERROR: no se enuentra info [HoraFInModoNoche]");
-    //     return;
-    // }
-    // Serial.print("Mono Noche Acaba: ");
-    // Serial.println(token);
-    // cf->HoraFinNoche =  std::stoi(token);
+    /*****************  [HoraFInModoNoche] *********************************/
+    token = strtok(nullptr, "#");
+    if(token==nullptr)
+    {
+        Serial.println("ERROR: no se enuentra info [HoraFInModoNoche]");
+        return;
+    }
+    Serial.print("Mono Noche Acaba: ");
+    Serial.println(token);
+    cf->HoraFinNoche =  std::stoi(token);
 }

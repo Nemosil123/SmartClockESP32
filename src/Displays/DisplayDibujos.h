@@ -241,7 +241,7 @@ class DisplayDibujos : public IDisplay
         DisplayDibujos();
         MD_Parola* pantalla;
         ConfigDisp cnf;
-        char* texto;
+        String texto;
         char* getTexto() override;
         void Init(MD_Parola* pantal) override;
         //uint32_t  getMilliseconsSleep() const override;

@@ -13,7 +13,6 @@
 class DisplayHora : public IDisplay
 {
     private:
-        // u_int8_t hora;
         // u_int8_t min;
        char* Texto;
 #ifdef MODULO_WIFI_PRESENTE
@@ -38,6 +37,7 @@ class DisplayHora : public IDisplay
         std::string getNombre() override;
         void setCnf(ConfigGeneral cf) override;
         void Pintar(MD_Parola *pantalla) override;
+        char *DiaSemanaLargo(); 
 
 
 };
